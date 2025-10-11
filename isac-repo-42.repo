@@ -1,5 +1,5 @@
-[isac1057-rpm]
-name=Isac1507 Repo
-baseurl=https://isac-1507.github.io/rpm-repo/fedora/42/x86_64/
+[Isac1057-rpm]
+name=Jellyfin-ffmpeg-isac
+baseurl=https://isac-1507.github.io/rpm-repo/jellyfin-ffmpeg-repo-$releasever
 enabled=1
 gpgcheck=0

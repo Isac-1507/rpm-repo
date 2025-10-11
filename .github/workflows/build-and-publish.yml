@@ -1,0 +1,68 @@
+name: Build Jellyfin FFmpeg RPMs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+
+    strategy:
+      matrix:
+        fedora_version: [42, 43, rawhide]
+
+    steps:
+      - name: Install build tools
+        run: |
+          dnf -y install rpmdevtools createrepo_c git wget curl make
+
+      - name: Clone upstream spec repo
+        run: |
+          git clone https://github.com/chenxiaolong/jellyfin-ffmpeg-fedora.git upstream
+          rpmdev-setuptree
+          cp upstream/jellyfin-ffmpeg.spec ~/rpmbuild/SPECS/
+
+      - name: Download sources from spec
+        run: |
+          cd ~/rpmbuild/SPECS
+          spectool -g jellyfin-ffmpeg.spec
+          mv ../SPECS/* ~/rpmbuild/SOURCES/
+
+      - name: Build RPM
+        run: |
+          cd ~/rpmbuild/SPECS
+          rpmbuild -bb jellyfin-ffmpeg.spec
+
+      - name: Copy RPMs to repo folder
+        run: |
+          mkdir -p repo/fedora/${{ matrix.fedora_version }}/x86_64
+          cp ~/rpmbuild/RPMS/x86_64/*.rpm repo/fedora/${{ matrix.fedora_version }}/x86_64/
+          createrepo_c repo/fedora/${{ matrix.fedora_version }}/x86_64
+
+      - name: Upload RPM repo as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: jellyfin-ffmpeg-repo-${{ matrix.fedora_version }}
+          path: repo/fedora/${{ matrix.fedora_version }}/x86_64
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Download all RPM repo artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: repo
+
+      - name: Push to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: repo
+          publish_branch: gh-pages

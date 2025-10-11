@@ -19,6 +19,12 @@ jobs:
         run: |
           dnf -y install rpmdevtools createrepo_c git wget curl make
 
+      - name: Enable RPM Fusion Free
+        run: |
+          FEDORA_VERSION=${{ matrix.fedora_version }}
+          dnf -y install \
+            https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VERSION}.noarch.rpm
+
       - name: Clone upstream spec repo
         run: |
           git clone https://github.com/chenxiaolong/jellyfin-ffmpeg-fedora.git upstream
@@ -33,6 +39,22 @@ jobs:
           cd /github/home/rpmbuild/SPECS
           spectool -g jellyfin-ffmpeg.spec
           mv *.tar.gz /github/home/rpmbuild/SOURCES/
+
+      - name: Install build dependencies
+        run: |
+          dnf -y install \
+            clang nasm vulkan-loader-devel lame-devel \
+            libdrm-devel libva-devel libva-drm-devel libva-x11-devel \
+            libwebp-devel libxml2-devel freetype-devel fontconfig-devel \
+            fribidi-devel harfbuzz-devel libass-devel libbluray-devel \
+            libchromaprint-devel libopenmpt-devel libplacebo-devel \
+            libvpx-devel libvorbis-devel theora-devel opus-devel \
+            zvbi-devel zlib-devel shaderc-devel dav1d-devel \
+            libzimg-devel libtheora-devel libvpl-devel \
+            opencl-headers opencl-utils-devel \
+            x264-devel x265-devel fdk-aac-devel ffmpeg-devel \
+            ffnvcodec-devel SvtAv1Enc-devel \
+            pkgconf-pkg-config
 
       - name: Build RPM
         run: |
@@ -69,4 +91,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: repo
           publish_branch: gh-pages
-

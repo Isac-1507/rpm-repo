@@ -1,4 +1,4 @@
-name: Build Jellyfin FFmpeg RPMs
+name: Build and Publish Jellyfin FFmpeg RPMs
 
 on:
   push:
@@ -22,24 +22,27 @@ jobs:
       - name: Clone upstream spec repo
         run: |
           git clone https://github.com/chenxiaolong/jellyfin-ffmpeg-fedora.git upstream
-          rpmdev-setuptree
-          cp upstream/jellyfin-ffmpeg.spec ~/rpmbuild/SPECS/
+
+      - name: Prepare RPM build tree
+        run: |
+          mkdir -p /github/home/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+          cp upstream/jellyfin-ffmpeg.spec /github/home/rpmbuild/SPECS/
 
       - name: Download sources from spec
         run: |
-          cd ~/rpmbuild/SPECS
+          cd /github/home/rpmbuild/SPECS
           spectool -g jellyfin-ffmpeg.spec
-          mv ../SPECS/* ~/rpmbuild/SOURCES/
+          mv *.tar.gz /github/home/rpmbuild/SOURCES/
 
       - name: Build RPM
         run: |
-          cd ~/rpmbuild/SPECS
-          rpmbuild -bb jellyfin-ffmpeg.spec
+          cd /github/home/rpmbuild/SPECS
+          rpmbuild -bb jellyfin-ffmpeg.spec --define "_topdir /github/home/rpmbuild"
 
       - name: Copy RPMs to repo folder
         run: |
           mkdir -p repo/fedora/${{ matrix.fedora_version }}/x86_64
-          cp ~/rpmbuild/RPMS/x86_64/*.rpm repo/fedora/${{ matrix.fedora_version }}/x86_64/
+          cp /github/home/rpmbuild/RPMS/x86_64/*.rpm repo/fedora/${{ matrix.fedora_version }}/x86_64/
           createrepo_c repo/fedora/${{ matrix.fedora_version }}/x86_64
 
       - name: Upload RPM repo as artifact
@@ -66,3 +69,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: repo
           publish_branch: gh-pages
+

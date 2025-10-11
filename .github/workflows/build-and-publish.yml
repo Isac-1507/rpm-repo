@@ -45,7 +45,7 @@ jobs:
       - name: Install build dependencies (skip unavailable)
         run: |
           dnf -y install \
-            clang nasm vulkan-loader-devel lame-devel \
+            clang nasm vulkan-loader-devel lame-devel AMF-devel ocl-icd-devel svt-av1-devel libdav1d-devel nv-codec-headers gnutls-devel zimg-devel\
             libdrm-devel libva-devel libva-drm-devel libva-x11-devel \
             libwebp-devel libxml2-devel freetype-devel fontconfig-devel \
             fribidi-devel harfbuzz-devel libass-devel libbluray-devel \

@@ -12,18 +12,18 @@ jobs:
 
     strategy:
       matrix:
-        fedora_version: [42, 43]
+        fedora_version: [42, 43, rawhide]
 
     steps:
       - name: Install build tools
         run: |
           dnf -y install rpmdevtools createrepo_c git wget curl make
 
-      - name: Enable RPM Fusion Free
+      - name: Enable RPM Fusion Free (Rawhide-safe)
         run: |
           FEDORA_VERSION=${{ matrix.fedora_version }}
-          dnf -y install \
-            https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VERSION}.noarch.rpm
+          curl -O https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VERSION}.noarch.rpm
+          rpm -i --nodeps rpmfusion-free-release-${FEDORA_VERSION}.noarch.rpm
 
       - name: Clone upstream spec repo
         run: |
@@ -40,7 +40,7 @@ jobs:
           spectool -g jellyfin-ffmpeg.spec
           mv *.tar.gz /github/home/rpmbuild/SOURCES/
 
-      - name: Install build dependencies
+      - name: Install build dependencies (skip unavailable)
         run: |
           dnf -y install \
             clang nasm vulkan-loader-devel lame-devel \
@@ -54,7 +54,15 @@ jobs:
             opencl-headers opencl-utils-devel \
             x264-devel x265-devel fdk-aac-devel ffmpeg-devel \
             ffnvcodec-devel SvtAv1Enc-devel \
-            pkgconf-pkg-config
+            pkgconf-pkg-config \
+            --skip-unavailable
+
+      - name: Log missing packages
+        run: |
+          for pkg in libva-drm-devel libva-x11-devel theora-devel shaderc-devel dav1d-devel \
+                     libzimg-devel opencl-utils-devel fdk-aac-devel ffnvcodec-devel SvtAv1Enc-devel; do
+            dnf repoquery --whatprovides "$pkg" || echo "Missing: $pkg"
+          done
 
       - name: Build RPM
         run: |

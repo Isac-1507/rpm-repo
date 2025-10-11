@@ -18,17 +18,13 @@ jobs:
       - name: Install build tools
         run: |
           dnf -y install rpmdevtools createrepo_c git wget curl make
-
-      - name: Enable RPM Fusion Free (Rawhide-safe)
+          
+      - name: Enable RPM Fusion Free and Nonfree
         run: |
           FEDORA_VERSION=${{ matrix.fedora_version }}
           curl -O https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VERSION}.noarch.rpm
+          curl -O https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDORA_VERSION}.noarch.rpm
           rpm -i --nodeps rpmfusion-free-release-${FEDORA_VERSION}.noarch.rpm
-          
-      - name: Enable RPM Fusion Non-Free (Rawhide-safe)
-        run: |
-          FEDORA_VERSION=${{ matrix.fedora_version }}
-          curl -O https://download1.rpmfusion.org/free/fedora/rpmfusion-nonfree-release-${FEDORA_VERSION}.noarch.rpm
           rpm -i --nodeps rpmfusion-nonfree-release-${FEDORA_VERSION}.noarch.rpm
           
       - name: Clone upstream spec repo

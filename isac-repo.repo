@@ -1,0 +1,5 @@
+[isac1057-rpm]
+name=Isac1507 Repo
+baseurl=https://isac1507.github.io/rpm-repo/fedora/42/x86_64/
+enabled=1
+gpgcheck=0

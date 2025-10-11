@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        fedora_version: [42, 43]
+        fedora_version: [42]
 
     steps:
       - name: Install build tools

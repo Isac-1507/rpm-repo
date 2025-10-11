@@ -39,7 +39,7 @@ jobs:
           cd /github/home/rpmbuild/SPECS
           spectool -g jellyfin-ffmpeg.spec
           mv *.tar.gz /github/home/rpmbuild/SOURCES/
-
+          dnf update --refresh
       - name: Install build dependencies (skip unavailable)
         run: |
           dnf -y install \

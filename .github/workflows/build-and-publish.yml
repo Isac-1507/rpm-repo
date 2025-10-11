@@ -23,7 +23,7 @@ jobs:
         run: |
           FEDORA_VERSION=${{ matrix.fedora_version }}
           dnf -y install \
-            https://rpmfusion.ip-connect.info/free/fedora/rpmfusion-free-release-${FEDORA_VERSION}.noarch.rpm
+            https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VERSION}.noarch.rpm
 
       - name: Clone upstream spec repo
         run: |

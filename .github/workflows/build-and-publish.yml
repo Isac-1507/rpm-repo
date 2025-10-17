@@ -8,17 +8,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: fedora:latest
 
     strategy:
       matrix:
         fedora_version: [42, 43]
 
+    container:
+      image: fedora:${{ matrix.fedora_version }}
+
     steps:
+      - name: Verify Fedora version
+        run: cat /etc/fedora-release
+
       - name: Install build tools
         run: |
           dnf -y install rpmdevtools createrepo_c git wget curl make
-          
+
       - name: Enable RPM Fusion Free and Nonfree
         run: |
           FEDORA_VERSION=${{ matrix.fedora_version }}
@@ -26,10 +31,9 @@ jobs:
           curl -O https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDORA_VERSION}.noarch.rpm
           rpm -i --nodeps --nosignature rpmfusion-free-release-${FEDORA_VERSION}.noarch.rpm
           rpm -i --nodeps --nosignature rpmfusion-nonfree-release-${FEDORA_VERSION}.noarch.rpm
-          
+
       - name: Clone upstream spec repo
-        run: |
-          git clone https://github.com/chenxiaolong/jellyfin-ffmpeg-fedora.git upstream
+        run: git clone https://github.com/chenxiaolong/jellyfin-ffmpeg-fedora.git upstream
 
       - name: Prepare RPM build tree
         run: |
@@ -42,10 +46,11 @@ jobs:
           spectool -g jellyfin-ffmpeg.spec
           mv *.tar.gz /github/home/rpmbuild/SOURCES/
           dnf update --refresh -y
+
       - name: Install build dependencies (skip unavailable)
         run: |
           dnf -y --nogpgcheck install \
-            clang nasm vulkan-loader-devel lame-devel AMF-devel ocl-icd-devel svt-av1-devel libdav1d-devel nv-codec-headers gnutls-devel zimg-devel\
+            clang nasm vulkan-loader-devel lame-devel AMF-devel ocl-icd-devel svt-av1-devel libdav1d-devel nv-codec-headers gnutls-devel zimg-devel \
             libdrm-devel libva-devel libva-drm-devel libva-x11-devel \
             libwebp-devel libxml2-devel freetype-devel fontconfig-devel \
             fribidi-devel harfbuzz-devel libass-devel libbluray-devel \

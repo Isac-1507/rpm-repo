@@ -71,22 +71,27 @@ jobs:
             dnf repoquery --whatprovides "$pkg" || echo "Missing: $pkg"
           done
 
-      - name: Build RPM
+      - name: Build RPMs (binary and source)
         run: |
           cd /github/home/rpmbuild/SPECS
-          rpmbuild -bb jellyfin-ffmpeg.spec --define "_topdir /github/home/rpmbuild"
+          rpmbuild -ba jellyfin-ffmpeg.spec --define "_topdir /github/home/rpmbuild"
 
       - name: Copy RPMs to repo folder
         run: |
           mkdir -p repo/fedora/${{ matrix.fedora_version }}/x86_64
+          mkdir -p repo/fedora/${{ matrix.fedora_version }}/SRPMS
           cp /github/home/rpmbuild/RPMS/x86_64/*.rpm repo/fedora/${{ matrix.fedora_version }}/x86_64/
+          cp /github/home/rpmbuild/SRPMS/*.src.rpm repo/fedora/${{ matrix.fedora_version }}/SRPMS/
           createrepo_c repo/fedora/${{ matrix.fedora_version }}/x86_64
+          createrepo_c repo/fedora/${{ matrix.fedora_version }}/SRPMS
 
       - name: Upload RPM repo as artifact
         uses: actions/upload-artifact@v4
         with:
           name: jellyfin-ffmpeg-repo-${{ matrix.fedora_version }}
-          path: repo/fedora/${{ matrix.fedora_version }}/x86_64
+          path: |
+            repo/fedora/${{ matrix.fedora_version }}/x86_64
+            repo/fedora/${{ matrix.fedora_version }}/SRPMS
 
   deploy:
     needs: build

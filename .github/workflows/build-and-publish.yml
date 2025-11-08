@@ -3,6 +3,8 @@ name: Build and Publish Jellyfin FFmpeg RPMs
 on:
   schedule:
     - cron:  '30 14 * * TUE'
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -11,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        fedora_version: [42, 43, rawhide]
+        fedora_version: [42, 43]
 
     container:
       image: fedora:${{ matrix.fedora_version }}
